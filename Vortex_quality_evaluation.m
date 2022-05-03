@@ -38,7 +38,6 @@ Where no. of evaluated profiles is no_of_rotations * 2.
 In the default scenario, vortex is evaluated across 4 profiles.
 %}
 %% Load image
-addpath('D:\OneDrive - Politechnika Wroclawska\Projects\2021\Vortex_quality\New')
 [FileName,PathName] = uigetfile({'*.png';'*.jpg'; '*.bmp'; }, '.bmp','Select file','Multiselect','off');
 
 
