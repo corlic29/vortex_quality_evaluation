@@ -28,12 +28,22 @@ desired_doughnut_ratio=1.608*abs(m)^0.5102-0.7913
 where m denotes the input vortex topological charge
 
 %}
+
+%{
+User can specify the number of profiles taken into account by modifing this
+parameter:
+no_of_rotations=2;
+
+Where no. of evaluated profiles is no_of_rotations * 2. 
+In the default scenario, vortex is evaluated across 4 profiles.
+%}
 %% Load image
+addpath('D:\OneDrive - Politechnika Wroclawska\Projects\2021\Vortex_quality\New')
 [FileName,PathName] = uigetfile({'*.png';'*.jpg'; '*.bmp'; }, '.bmp','Select file','Multiselect','off');
 
 
 I=im2double(imread([PathName FileName]));
-%I=imadjust(I);
+I=imadjust(I);
 
 %% Point out the vortex center
 figure()
@@ -50,11 +60,10 @@ vortex_point_y=round(vortex_point_y);
 %I=rgb2gray(im2double(imread([PathName strjoin(FileName(z))])));
 I=mat2gray(im2double(imread([PathName strjoin(FileName)])));
 H = fspecial('disk',3);
-I = imfilter(I,H,'replicate');
-I = imadjust(I);
-imwrite(I,[PathName strjoin(FileName(z)) '_adjusted.bmp'])
+%I = imfilter(I,H,'replicate');
+%I = imadjust(I);
+%imwrite(I,[PathName strjoin(FileName(z)) '_adjusted.bmp'])
 %}
-
 
 %% Quality inspection
 %Eccentricity
@@ -65,8 +74,8 @@ eccentricity=LG_parameters(1)
 [peaks_parameters1] = Get_peaks_parameters_manual_2(I,vortex_point_x, vortex_point_y);
 
 %Diagonal axes
-I=rotateAround(I,vortex_point_y,vortex_point_x,45);
-[peaks_parameters2] = Get_peaks_parameters_manual_2(I,vortex_point_x, vortex_point_y);
+I2=rotateAround(I,vortex_point_y,vortex_point_x,45);
+[peaks_parameters2] = Get_peaks_parameters_manual_2(I2,vortex_point_x, vortex_point_y);
 
 %Mean values
 peak_to_valley=mean([peaks_parameters1(1),peaks_parameters2(1)],'all')
@@ -78,6 +87,33 @@ close all
 %% Results
 results=[LG_parameters, peak_to_valley, peaks_difference, doughnut_ratio];
 
+writematrix(results, [PathName FileName '.txt']);
 
+%%
+no_of_rotations=2;
+rotation_angle=0:90/no_of_rotations:90;
 
+for i=1:1:length(rotation_angle)-1;
+I=rotateAround(I,vortex_point_y,vortex_point_x,rotation_angle(i));
+%% Quality inspection
+%Eccentricity
+[LG_parameters] = Get_LG_parameters_manual_2(I,vortex_point_x, vortex_point_y);
+eccentricity(i)=LG_parameters(1);
 
+%x and y axes
+[peaks_parameters1] = Get_peaks_parameters_manual_2(I,vortex_point_x, vortex_point_y);
+
+%Mean values
+peak_to_valley(i)=peaks_parameters1(1);
+peaks_difference(i)=peaks_parameters1(2);
+doughnut_ratio(i)=peaks_parameters1(3);
+
+close all
+end
+
+Eccentricity=mean(eccentricity(:));
+PV=mean(peak_to_valley(:));
+PD=mean(peaks_difference(:));
+R=mean(doughnut_ratio(:));
+
+results=[Eccentricity, PV, PD, R];
